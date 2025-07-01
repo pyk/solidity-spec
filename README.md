@@ -73,6 +73,7 @@ Solidity is statically typed, supports inheritance, libraries, and complex user-
       * [SPDX License Identifier](#spdx-license-identifier)
       * [Pragma Directives](#pragma-directives)
       * [Import Directives](#import-directives)
+      * [Using Directive](#using-directive)
     * [Structure of a Contract](#structure-of-a-contract)
       * [State Variables](#state-variables)
       * [Function Definitions](#function-definitions)
@@ -549,6 +550,13 @@ pragma solidity ^0.8.0;
 pragma abicoder v2; // Selects ABI encoder v2 (default since v0.8.0)
 ```
 
+**Experimental Pragma:** The `experimental` pragma enables compiler features that are not yet enabled by default. Its usage has evolved, with features often graduating to standard pragmas.
+
+```solidity
+// Enables the SMTChecker formal verification module.
+pragma experimental SMTChecker;
+```
+
 #### Import Directives
 
 Import statements are used to modularize code.
@@ -559,6 +567,30 @@ import {symbol1 as alias, symbol2} from "filename";
 import * as symbolName from "filename";
 ```
 
+#### Using Directive
+
+The `using for` directive attaches library functions or free functions to a specific type, allowing them to be called as member functions. It can also be used to define custom operators for user-defined value types (since v0.8.19).
+
+The syntax is `using A for B;`.
+*   `A` can be a library name (e.g., `Search`) or a brace-enclosed list of functions (e.g., `{f, g as +}`).
+*   `B` can be a specific type (e.g., `uint[]`) or a wildcard `*` to apply the functions to all types.
+
+The directive is active only within its scope (contract or file level). The `global` keyword can be used at the file level to make the attachment visible everywhere the type is available.
+
+```solidity
+library Search {
+    function indexOf(uint[] storage self, uint value) internal view returns (uint) { ... }
+}
+
+contract MyContract {
+    using Search for uint[];
+    uint[] public data;
+
+    function find(uint value) public view returns (uint) {
+        return data.indexOf(value); // Called like a member function
+    }
+}
+```
 ### Structure of a Contract
 
 A contract is defined with the `contract` keyword and can contain state variables, functions, modifiers, events, errors, and user-defined types.
