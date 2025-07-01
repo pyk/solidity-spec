@@ -4,7 +4,7 @@
 
 Solidity is an object-oriented, statically-typed, high-level language for implementing smart contracts. Smart contracts are programs that govern the behavior of accounts within the Ethereum state.
 
-This document was derived from the official [Solidity documentation](https://docs.soliditylang.org/). It was influenced by the [Starlark specification](https://github.com/bazelbuild/starlark/blob/master/spec.md), and by extension, the Python and Go specifications.
+This document was derived from the official [Solidity documentation](https://docs.soliditylang.org/). This document was inspired by the [Starlark specification](https://github.com/bazelbuild/starlark/blob/master/spec.md), and by extension, the Python and Go specifications.
 
 ## Overview
 
