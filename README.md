@@ -4,13 +4,13 @@
 
 Solidity is an object-oriented, statically-typed, high-level language for implementing smart contracts. Smart contracts are programs that govern the behavior of accounts within the Ethereum state.
 
-This document was derived from the official [Solidity documentation](https://docs.soliditylang.org/). This document was inspired by the [Starlark specification](https://github.com/bazelbuild/starlark/blob/master/spec.md), and by extension, the Python and Go specifications.
+This document was derived from the official [Solidity documentation](https://docs.soliditylang.org/). It is stylistically inspired by the [Starlark specification](https://github.com/bazelbuild/starlark/blob/master/spec.md), and by extension, the Python and Go specifications.
 
 ## Overview
 
 Solidity is a curly-braced language designed to target the Ethereum Virtual Machine (EVM). Its syntax is influenced by C++, while other features like multiple inheritance and member access are inspired by Python.
 
-Solidity is statically typed, supports inheritance, libraries, and complex user-defined types. Its programs are designed to run in an isolated, deterministic environment (the EVM), where they can manage state and value (Ether) according to a predefined set of rules. Unlike general-purpose languages, Solidity programs have direct access to blockchain-specific concepts like account addresses, transaction data, and block properties. Memory management is manual for complex types, with explicit data locations (`storage`, `memory`, `calldata`) that determine the lifecycle and gas cost of data.
+Solidity is statically typed, supports inheritance, libraries, and complex user-defined types. Its programs are designed to run in an isolated, deterministic environment (the EVM), where they can manage state and value (Ether) according to a predefined set of rules. Unlike general-purpose languages, Solidity programs have direct access to blockchain-specific concepts like account addresses, transaction data, and block properties. Memory management is primarily manual for complex types, with explicit data locations (`storage`, `memory`, `calldata`) that determine the lifecycle and gas cost of data.
 
 ## Contents
 
@@ -36,11 +36,11 @@ Solidity is statically typed, supports inheritance, libraries, and complex user-
       * [Fixed-Size Byte Arrays](#fixed-size-byte-arrays)
       * [Enums](#enums)
       * [User-Defined Value Types](#user-defined-value-types)
+      * [Function Types](#function-types)
     * [Reference Types](#reference-types)
       * [Arrays](#arrays)
       * [Structs](#structs)
       * [Mappings](#mappings)
-    * [Function Types](#function-types)
   * [Value Concepts](#value-concepts)
     * [Data Locations](#data-locations)
     * [L-values and R-values](#l-values-and-r-values)
@@ -93,7 +93,6 @@ Solidity is statically typed, supports inheritance, libraries, and complex user-
     * [Mathematical and Cryptographic Functions](#mathematical-and-cryptographic-functions)
     * [Contract-Related](#contract-related)
     * [Type Information](#type-information)
-  * [Grammar Reference](#grammar-reference)
 
 ## Lexical elements
 
@@ -269,9 +268,27 @@ UFixed.wrap(100); // convert uint to UFixed
 UFixed.unwrap(u); // convert UFixed to uint
 ```
 
+#### Function Types
+
+Function types represent functions. They are considered value types because their values are always copied when they are used in assignments or as arguments to functions.
+
+There are two kinds of function types:
+
+*   **Internal Functions**: These point to functions within the current contract. Their value is a program counter address (a jump destination) inside the contract's bytecode. They can only be called internally.
+
+    ```solidity
+    function (uint) internal pure returns (uint)
+    ```
+
+*   **External Functions**: These consist of a contract's address (20 bytes) and a function selector (4 bytes), typically packed as a `bytes24`. They can be passed as arguments and returned from external function calls.
+
+    ```solidity
+    function (address) external
+    ```
+
 ### Reference Types
 
-Reference types are more complex and must be managed carefully with respect to their data location: `memory`, `storage`, or `calldata`.
+Reference types are more complex and must be managed carefully with respect to their data location: `memory`, `storage`, or `calldata`. The data of reference type variables is not copied on assignment within the same data location; instead, a reference is created.
 
 #### Arrays
 
@@ -298,17 +315,6 @@ struct Funder {
 `mapping(KeyType => ValueType)`: Hash tables that map keys to values. `KeyType` can be almost any value type, but not a mapping, a dynamically sized array, a struct, or an enum. `ValueType` can be any type, including mappings.
 
 Mappings are only allowed for state variables (i.e., `storage` data location). They are virtually initialized such that every possible key exists and maps to a zero-byte value.
-
-### Function Types
-
-Function types represent functions. There are two kinds:
-*   `internal` functions, which can only be called inside the current contract.
-*   `external` functions, which consist of an address and a function signature and can be passed as arguments and returned from external function calls.
-
-```solidity
-function (uint) internal pure returns (uint)
-function (address) external
-```
 
 ## Value Concepts
 
@@ -378,6 +384,7 @@ Solidity provides the following binary operators, arranged in order of increasin
 *   **Bitwise Operators**: `&` (AND), `|` (OR), `^` (XOR), `<<` (left shift), `>>` (right shift).
 *   **Arithmetic Operators**: `+`, `-`, `*`, `/`, `%` (modulo), `**` (exponentiation). By default (since v0.8.0), these operations are checked for overflow/underflow.
 *   **Exponentiation (`**`)**: became right-associative in v0.8.0.
+*   **User-Defined Operators**: For user-defined value types, operators can be defined using the `using for` directive (since v0.8.19).
 
 ### Conditional Expressions (Ternary Operator)
 
@@ -417,7 +424,7 @@ MyContract newContract = new MyContract{salt: mySalt}(arg1);
 
 ### Member Access
 
-Members of a struct, contract, or library are accessed using the dot notation, e.g., `myStruct.myMember`.
+Members of a struct, contract, or library are accessed using the dot notation, e.g., `myStruct.myMember`. Methods can be built-in, user-defined within the contract, or attached to a type via a `using for` directive.
 
 ### Index and Slice Access
 
@@ -575,7 +582,7 @@ The syntax is `using A for B;`.
 *   `A` can be a library name (e.g., `Search`) or a brace-enclosed list of functions (e.g., `{f, g as +}`).
 *   `B` can be a specific type (e.g., `uint[]`) or a wildcard `*` to apply the functions to all types.
 
-The directive is active only within its scope (contract or file level). The `global` keyword can be used at the file level to make the attachment visible everywhere the type is available.
+The directive is active only within its scope (contract or file level). The `global` keyword can be used at the file level (since v0.8.13) to make the attachment visible everywhere the type is available.
 
 ```solidity
 library Search {
@@ -601,7 +608,7 @@ Variables whose values are permanently stored in contract storage.
 
 #### Function Definitions
 
-Executable units of code. See [Functions](#function-types) for more.
+Executable units of code. See [Function Types](#function-types) for more.
 
 #### Modifiers
 
@@ -639,7 +646,7 @@ A special function, declared with the `constructor` keyword (since v0.5.0), that
 
 #### Destruction
 
-A contract can be removed from the blockchain with `selfdestruct(recipient)`, sending its remaining balance to the `recipient`. The behavior of `selfdestruct` was significantly restricted in the Cancun EVM upgrade (EIP-6780).
+A contract can be removed from the blockchain with `selfdestruct(recipient)`, sending its remaining balance to the `recipient`. The behavior of `selfdestruct` was significantly restricted in the Cancun EVM upgrade (EIP-6780), where it no longer destroys the contract's code or storage.
 
 ### Inheritance
 
@@ -702,7 +709,3 @@ contract A is B, C { ... }
 *   `type(T).runtimeCode`: Runtime bytecode of contract `T`.
 *   `type(I).interfaceId`: EIP-165 interface ID of interface `I` (since v0.6.2).
 *   `type(T).min` / `type(T).max`: Min/max values for integer type `T` (since v0.8.8 for enums, earlier for integers).
-
-## Grammar Reference
-
-TODO
