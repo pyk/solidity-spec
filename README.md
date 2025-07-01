@@ -39,6 +39,7 @@ Solidity is statically typed, supports inheritance, libraries, and complex user-
       * [Function Types](#function-types)
     * [Reference Types](#reference-types)
       * [Arrays](#arrays)
+      * [Bytes and Strings](#bytes-and-strings)
       * [Structs](#structs)
       * [Mappings](#mappings)
   * [Value Concepts](#value-concepts)
@@ -295,9 +296,18 @@ Reference types are more complex and must be managed carefully with respect to t
 *   Fixed-Size Arrays: `T[k]`, an array of `k` elements of type `T`.
 *   Dynamically-Sized Arrays: `T[]`, an array that can change size at runtime.
 
-`bytes` and `string` are special array types. `bytes` is a dynamic byte array, and `string` is a dynamic UTF-8 encoded string.
+Arrays have a `.length` member. Dynamic storage arrays also have `.push()` and `.pop()` methods to change their size. For more details on the special dynamic arrays `bytes` and `string`, see the next section.
 
-Arrays have a `.length` member. Dynamic storage arrays also have `.push()` and `.pop()` methods. The `bytes.concat` and `string.concat` functions were added in v0.8.12 and v0.8.15 respectively.
+#### Bytes and Strings
+
+`bytes` and `string` are special reference types that behave like dynamic arrays.
+
+*   `bytes`: A dynamically-sized byte array. It is a preferred choice over `bytes1[]` for arbitrary-length byte data as it is packed tightly in memory and calldata, making it more gas-efficient.
+*   `string`: A dynamically-sized UTF-8 encoded string. It is semantically equivalent to `bytes` but with the restriction that it must hold valid UTF-8 sequences.
+
+Direct index access (`s[i]`) is supported for `bytes` but not for `string`. To access the byte representation of a `string`, it must be explicitly converted: `bytes(s)[i]`.
+
+For `storage` variables of type `bytes`, `.push(x)` and `.pop()` are available. The global functions `bytes.concat` and `string.concat` (introduced in v0.8.12 and v0.8.15) can be used to concatenate multiple arguments.
 
 #### Structs
 
